@@ -5,56 +5,54 @@ var makerjs = require('makerjs') as typeof MakerJs;
 class App {
 
     public fontList: google.fonts.WebfontList;
-    private fileUpload: HTMLInputElement
-    private fileUploadRemove: HTMLInputElement
-    private customFont: opentype.Font;
     private selectFamily: HTMLSelectElement;
-    private selectVariant: HTMLSelectElement;
-    private filledCheckbox: HTMLInputElement;
-    private textInput: HTMLInputElement;
+    private textInput: HTMLInputElement; 
     private sizeInput: HTMLInputElement;
     private renderDiv: HTMLDivElement;
     private outputTextarea: HTMLTextAreaElement;
     private renderOutlineDiv: HTMLDivElement;
     private outlineTextarea: HTMLTextAreaElement;
     private dummy: HTMLInputElement;
-    private fillInput: HTMLInputElement;
-    private strokeInput: HTMLInputElement;
-    private strokeWidthInput: HTMLInputElement;
+    private holePositionY: HTMLInputElement;
+    private holePositionX: HTMLInputElement;
+    private outlineMargin: HTMLInputElement;
 
     private renderCurrent = () => {
         var size = this.sizeInput.valueAsNumber;
         if (!size) size = parseFloat(this.sizeInput.value);
         if (!size) size = 100;
+
+        var holePositionY = this.holePositionY.valueAsNumber;
+        if (!holePositionY) holePositionY = parseFloat(this.holePositionY.value);
+        if (!holePositionY) holePositionY = 50;
+
+        var holePositionX = this.holePositionX.valueAsNumber;
+        if (!holePositionX) holePositionX = parseFloat(this.holePositionX.value);
+        if (!holePositionX) holePositionX = 50;
+
+        var outlineMargin = this.outlineMargin.valueAsNumber;
+        if (!outlineMargin) outlineMargin = parseFloat(this.outlineMargin.value);
+        if (!outlineMargin) outlineMargin = 50;
+
         this.render(
             this.selectFamily.selectedIndex,
-            this.selectVariant.selectedIndex,
             this.textInput.value,
             size,
-            this.filledCheckbox.checked,
-            this.fillInput.value,
-            this.strokeInput.value,
-            this.strokeWidthInput.value,
+            holePositionY,
+            holePositionX,
+            outlineMargin,
         );
     };
 
-    private loadVariants = () => {
-        this.selectVariant.options.length = 0;
-        var f = this.fontList.items[this.selectFamily.selectedIndex];
-        var v = f.variants.forEach(v => this.addOption(this.selectVariant, v));
-        this.renderCurrent();
-    };
     private updateUrl = () => {
         var urlSearchParams = new URLSearchParams(window.location.search);
 
         urlSearchParams.set('font-select', this.selectFamily.value);
-        urlSearchParams.set('font-variant', this.selectVariant.value);
-        urlSearchParams.set('input-filled', String(this.filledCheckbox.checked));
         urlSearchParams.set('input-text', this.textInput.value);
         urlSearchParams.set('input-size', this.sizeInput.value);
-        urlSearchParams.set('input-fill', this.fillInput.value);
-        urlSearchParams.set('input-stroke', this.strokeInput.value);
-        urlSearchParams.set('input-strokeWidth', this.strokeWidthInput.value);
+        urlSearchParams.set('holePositionY', this.holePositionY.value);
+        urlSearchParams.set('holePositionX', this.holePositionX.value);
+        urlSearchParams.set('outlineMargin', this.outlineMargin.value);
         
         const url = window.location.protocol 
                     + "//" + window.location.host 
@@ -65,39 +63,13 @@ class App {
         window.history.replaceState({path: url}, "", url)
 
     }
-    private readUploadedFile = async (event: Event) => {
-        const element = event.currentTarget as HTMLInputElement;
-
-        if (element.files.length === 0) {
-          this.customFont = undefined;
-        } else {
-          var files = element.files[0];
-
-          var buffer = await files.arrayBuffer();
-
-          var font = opentype.parse(buffer);
-
-          this.customFont = font;
-        }
-        this.renderCurrent();
-    }
-    private removeUploadedFont = () => {
-        this.fileUpload.value = null;
-        this.customFont = undefined;
-        this.renderCurrent();
-    }
 
     constructor() {
 
     }
 
     init() {
-
-        this.fileUpload = this.$('#font-upload') as HTMLInputElement;
-        this.fileUploadRemove = this.$('#font-upload-remove') as HTMLInputElement;
         this.selectFamily = this.$('#font-select') as HTMLSelectElement;
-        this.selectVariant = this.$('#font-variant') as HTMLSelectElement;
-        this.filledCheckbox = this.$('#input-filled') as HTMLInputElement;
         this.textInput = this.$('#input-text') as HTMLInputElement;
         this.sizeInput = this.$('#input-size') as HTMLInputElement;
         this.renderDiv = this.$('#svg-render') as HTMLDivElement;
@@ -105,31 +77,23 @@ class App {
         this.renderOutlineDiv = this.$('#svg-render-outline') as HTMLDivElement;
         this.outlineTextarea = this.$('#outline-svg') as HTMLTextAreaElement;
         this.dummy = this.$('#dummy') as HTMLInputElement;
-        this.fillInput = this.$('#input-fill') as HTMLInputElement;
-        this.strokeInput = this.$('#input-stroke') as HTMLInputElement;
-        this.strokeWidthInput = this.$('#input-stroke-width') as HTMLInputElement;
+        this.holePositionY = this.$('#holePositionY') as HTMLInputElement;
+        this.holePositionX = this.$('#holePositionX') as HTMLInputElement;
+        this.outlineMargin = this.$('#outlineMargin') as HTMLInputElement;
     }
 
     readQueryParams() {
         var urlSearchParams = new URLSearchParams(window.location.search);
 
         var selectFamily = urlSearchParams.get('font-select');
-        var selectVariant = urlSearchParams.get('font-variant');
-        var filledCheckbox = urlSearchParams.get('input-filled');
         var textInput = urlSearchParams.get('input-text');
         var sizeInput = urlSearchParams.get('input-size');
-        var fillInput = urlSearchParams.get('input-fill');
-        var strokeInput = urlSearchParams.get('input-stroke');
-        var strokeWidthInput = urlSearchParams.get('input-stroke-width');
+        var holePositionY = urlSearchParams.get('holePositionY');
+        var holePositionX = urlSearchParams.get('holePositionX');
+        var outlineMargin = urlSearchParams.get('outlineMargin');
 
         if (selectFamily !== "" && selectFamily !== null)
             this.selectFamily.value = selectFamily;
-        
-        if (selectVariant !== "" && selectVariant !== null)
-            this.selectVariant.value = selectVariant;
-
-        if (filledCheckbox !== "" && filledCheckbox !== null)
-            this.filledCheckbox.checked = filledCheckbox === "true" ? true : false;
      
         if (textInput !== "" && textInput !== null)
             this.textInput.value = textInput;
@@ -137,32 +101,25 @@ class App {
         if (sizeInput !== "" && sizeInput !== null)
             this.sizeInput.value = sizeInput;
 
-        if (fillInput !== "" && fillInput !== null)
-            this.fillInput.value = fillInput;
+        if (holePositionY !== "" && holePositionY !== null)
+            this.holePositionY.value = holePositionY;
 
-        if (strokeInput !== "" && strokeInput !== null)
-            this.strokeInput.value = strokeInput;
-        
-        if (strokeWidthInput !== "" && strokeWidthInput !== null)
-            this.strokeWidthInput.value = strokeWidthInput;
+        if (holePositionX !== "" && holePositionX !== null)
+            this.holePositionX.value = holePositionX;
+
+        if (outlineMargin !== "" && outlineMargin !== null)
+            this.outlineMargin.value = outlineMargin;
 
     }
 
     handleEvents() {
-        this.fileUpload.onchange = this.readUploadedFile;
-        this.fileUploadRemove.onclick = this.removeUploadedFont
-        this.selectFamily.onchange = this.loadVariants;
-        this.selectVariant.onchange =
-            this.textInput.onchange =
+        this.selectFamily.onchange = this.renderCurrent;
+        this.textInput.onchange =
             this.textInput.onkeyup =
-            this.sizeInput.onkeyup =
-            this.filledCheckbox.onchange =
-            this.fillInput.onchange =
-            this.fillInput.onkeyup =
-            this.strokeInput.onchange =
-            this.strokeInput.onkeyup =
-            this.strokeWidthInput.onchange =
-            this.strokeWidthInput.onkeyup =
+            this.sizeInput.onchange =
+            this.holePositionY.onchange = 
+            this.holePositionX.onchange = 
+            this.outlineMargin.onchange = 
             this.renderCurrent
             ;
 
@@ -187,63 +144,69 @@ class App {
         xhr.onloadend = () => {
             this.fontList = JSON.parse(xhr.responseText);
             this.fontList.items.forEach(font => this.addOption(this.selectFamily, font.family));
-            this.loadVariants();
 
             this.handleEvents();
-
             this.readQueryParams();
             this.renderCurrent();
         };
         xhr.send();
     }
 
-    callMakerjs(font: opentype.Font, text: string, size: number, filled: boolean,
-         fill: string, stroke: string, strokeWidth: string) {
-        //generate the text using a font
-        var textModel = new makerjs.models.Text(font, text, size, false);
+    callMakerjs(font: opentype.Font, text: string, size: number, 
+         holePositionY: number, holePositionX: number,
+         outlineMargin: number) {
 
-        var svg = makerjs.exporter.toSVG(textModel, {
-                fill: 'none',
-                stroke: '#000', 
-                strokeWidth: '0.25mm',
-            });
+        var varTextModel = new makerjs.models.Text(font, text, size, false);
 
-        this.renderDiv.innerHTML = svg;
-        this.outputTextarea.value = svg;
+        function example(origin) {
+            this.models = {
+                textModel: varTextModel,
+                outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin),
+                outlineRingModel: makerjs.model.move(new makerjs.models.Oval(20, 20), [holePositionX, holePositionY]),
+                ringModel: makerjs.model.move(new makerjs.models.Oval(10, 10), [holePositionX+5, holePositionY+5])
+            };
+            this.origin = origin;
+        }
 
-        var outlineModel = makerjs.model.outline(textModel, 10);
-        var outline = makerjs.exporter.toSVG(outlineModel, {
+        var examples = {
+            models: {
+                x1: new example([0, 0])
+            }
+        };
+        var x = examples.models;
+        makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
+
+        var svg = makerjs.exporter.toSVG(examples, {
             fill: 'none',
-            stroke: stroke ? stroke : undefined, 
-            strokeWidth: strokeWidth ? strokeWidth : undefined,
         });
+        
+        this.renderOutlineDiv.innerHTML = svg;
+        this.outlineTextarea.value = svg;
 
-        this.renderOutlineDiv.innerHTML = outline;
-        this.outlineTextarea.value = outline;
     }
 
     render(
         fontIndex: number,
-        variantIndex: number,
         text: string,
         size: number,
-        filled: boolean,
-        fill: string,
-        stroke: string,
-        strokeWidth: string,
+        holePositionY: number,
+        holePositionX: number,
+        outlineMargin: number,
+        
     ) {
         
         var f = this.fontList.items[fontIndex];
-        var v = f.variants[variantIndex];
-        var url = f.files[v].substring(5);  //remove http:
-
-        if (this.customFont !== undefined) {
-            this.callMakerjs(this.customFont, text, size, filled, fill, stroke, strokeWidth);
-        } else {
-            opentype.load(url, (err, font) => {
-                this.callMakerjs(font, text, size, filled, fill, stroke, strokeWidth);
-            });
-        }
+        var url = f.files['regular'].substring(5); //remove http:
+        document.getElementById('input-size-label').innerHTML = size.toString();
+        document.getElementById('holePositionYLabel').innerHTML = holePositionY.toString();
+        document.getElementById('holePositionXLabel').innerHTML = holePositionX.toString();
+        document.getElementById('outlineMarginLabel').innerHTML = outlineMargin.toString();
+       
+        opentype.load(url, (err, font) => {
+            if(text != ""){
+                this.callMakerjs(font, text, size, holePositionY, holePositionX, outlineMargin);
+            }
+        });
     }
 }
 

@@ -21,17 +21,15 @@
 </head>
 
 <body>
-    <h1>Keychain Name Generator</h1>
-    <hr />
+    <header>
+        <h1>Keychain Name Generator</h1>
+        <hr />
+    </header>
+    
 
     <main>
         <div class="row">
-            <div class="column">
-                <div id="svg-render"></div>
-
-                <div class="textarea-container">
-                    <textarea id="output-svg" readonly></textarea>
-                </div>
+            <div class="column" id="left-column">
 
                 <div id="svg-render-outline"></div>
 
@@ -45,35 +43,41 @@
                 </div>
 
                 <div class="input-holder">
-                    <label>(optional) upload font: <input id="font-upload" type="file" class="input" /></label>
-                    <button id="font-upload-remove" class="input">Remove</button>
-                </div>
-                
-                <div class="input-holder">
-                    <label>variant: <select id="font-variant" class="input"></select></label>
-                </div>
-
-                <div class="input-holder">
                     <label>text: <input type="text" id="input-text" value="Verb" class="input-text input" /></label>
 
                 </div>
                 <div class="input-holder">
-                    <label>size: <input type="number" id="input-size" value="100" class="input-size input" /></label>
+                    <!-- <label>size: <input type="number" id="input-size" value="100" class="input-size input" /></label> -->
+                    <label>Size: 
+                        <div class="holePositionLabel" id="input-size-label"></div>
+                        <!-- <input type="number" class="holePositionLabel" id="input-size2"/> -->
+                        <br>
+                        <input type="range" min="10" max="300" value="100" id="input-size" class="holePosition">
+                    </label>
                 </div>
 
                 <div class="input-holder">
-                    <label>fill: <input type="checkbox" id="input-filled" checked /></label>
+                    <label>Y hole position: 
+                        <div class="holePositionLabel" id="holePositionYLabel"></div>
+                        <br>
+                        <input type="range" min="0" max="200" value="68" id="holePositionY" class="holePosition">
+                    </label>
                 </div>
 
                 <div class="input-holder">
-                    <label>Fill: <input type="text" id="input-fill" value="#000" class="input-fill input" data-coloris /></label>
+                    <label>X hole position: 
+                        <div class="holePositionLabel" id="holePositionXLabel"></div>
+                        <br>
+                        <input type="range" min="-40" max="50" value="-8" id="holePositionX" class="holePosition">
+                    </label>
                 </div>
 
                 <div class="input-holder">
-                    <label>Stroke: <input type="text" id="input-stroke" value="#000" class="input-stroke input" data-coloris /></label>
-                </div>
-                <div class="input-holder">
-                    <label>Stroke Width: <input type="text" id="input-stroke-width" value="0.25mm" class="input-stroke-width input"/></label>
+                    <label>Outline Margin: 
+                        <div class="holePositionLabel" id="outlineMarginLabel"></div>
+                        <br>
+                        <input type="range" min="2" max="30" value="10" id="outlineMargin" class="holePosition">
+                    </label>
                 </div>
             </div>
         </div>
