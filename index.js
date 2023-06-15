@@ -111,13 +111,15 @@ var App = /** @class */ (function () {
         xhr.send();
     };
     App.prototype.callMakerjs = function (font, text, size, holePositionY, holePositionX, outlineMargin) {
-        var varTextModel = new makerjs.models.Text(font, text, size, false);
+        // Text model
+        var varTextModel = new makerjs.models.Text(font, text, size, true);
         function example(origin) {
+            // All the models
             this.models = {
                 textModel: varTextModel,
                 outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin),
-                outlineRingModel: makerjs.model.move(new makerjs.models.Oval(20, 20), [holePositionX, holePositionY]),
-                ringModel: makerjs.model.move(new makerjs.models.Oval(10, 10), [holePositionX + 5, holePositionY + 5])
+                outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
+                ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX + 3.4, holePositionY + 4])
             };
             this.origin = origin;
         }
@@ -127,10 +129,18 @@ var App = /** @class */ (function () {
             }
         };
         var x = examples.models;
+        // Combine the ringModel with the outlineTextModel to make only 1 outline
         makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
+        // Red outline
+        x.x1.models.outlineRingModel.layer = "red";
+        x.x1.models.ringModel.layer = "red";
+        x.x1.models.outlineTextModel.layer = "red";
+        // Export to svg
         var svg = makerjs.exporter.toSVG(examples, {
             fill: 'none',
+            units: 'mm'
         });
+        // Show in screen
         this.renderOutlineDiv.innerHTML = svg;
         this.outlineTextarea.value = svg;
     };
