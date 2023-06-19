@@ -138,51 +138,79 @@ class App {
          holePositionY: number, holePositionX: number,
          outlineMargin: number) {
 
-        function obtainSvg(text):string{
-            var svg:string = "";
-            text.forEach((textName) => {
-                // Text model
-                var varTextModel = new makerjs.models.Text(font, textName, size, true);
-    
-                function example(origin: number[]) {
-                    // All the models
-                    this.models = {
-                        textModel: varTextModel,
-                        /* outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin, 0, false), */
-                        outlineTextModel: makerjs.model.expandPaths(varTextModel, outlineMargin),
-                        outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
-                        ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX+3.4, holePositionY+4])
-                    };
-                    this.origin = origin;
-                }
-    
-                var examples = {
-                    models: {
-                        x1: new example([0, 0])
-                    }
+        const leftColumn = document.getElementById("svg-render-outline");
+        // Remove no content divs
+        const divs = leftColumn.querySelectorAll("div");
+        divs.forEach((div) => {
+            if(!div.innerHTML.includes("<svg")){
+                div.remove();
+            };
+        });
+        const divElement = document.createElement("div");
+
+        const textareaContainer = document.getElementById("textarea-container");
+        // Remove no content textarea
+        const textareas = textareaContainer.querySelectorAll("textarea");
+        textareas.forEach((textArea) => {
+            if(textArea.value.trim() === ""){
+                textArea.remove();
+            };
+        });
+        
+        const textAreaElement = document.createElement("textarea")
+        let i  = 1;
+
+        text.forEach((textName) => {
+            let identifier = "svg-render-outline"+i.toString()
+            let identifier2 = "textarea-container"+i.toString()
+            divElement.id = identifier;
+            textAreaElement.id = identifier2;
+            // Text model
+            var varTextModel = new makerjs.models.Text(font, textName, size, true);
+
+            function example(origin: number[]) {
+                // All the models
+                this.models = {
+                    textModel: varTextModel,
+                    /* outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin, 0, false), */
+                    outlineTextModel: makerjs.model.expandPaths(varTextModel, outlineMargin),
+                    outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
+                    ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX+3.4, holePositionY+4])
                 };
-    
-                var x = examples.models;
-                // Combine the ringModel with the outlineTextModel to make only 1 outline
-                makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
-    
-                // Red outline
-                x.x1.models.outlineRingModel.layer = "red";
-                x.x1.models.ringModel.layer = "red";
-                x.x1.models.outlineTextModel.layer = "red";
-    
-                // Export to svg
-                svg += makerjs.exporter.toSVG(examples, {
-                    fill: 'none',
-                    units: 'mm' 
-                });
+                this.origin = origin;
+            }
+
+            var examples = {
+                models: {
+                    x1: new example([0, 0])
+                }
+            };
+
+            var x = examples.models;
+            // Combine the ringModel with the outlineTextModel to make only 1 outline
+            makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
+
+            // Red outline
+            x.x1.models.outlineRingModel.layer = "red";
+            x.x1.models.ringModel.layer = "red";
+            x.x1.models.outlineTextModel.layer = "red";
+
+            // Export to svg
+            var svg = makerjs.exporter.toSVG(examples, {
+                fill: 'none',
+                units: 'mm' 
             });
-            return svg;
-        }
+            leftColumn.appendChild(divElement);
+            textareaContainer.appendChild(textAreaElement);
+            document.getElementById(identifier).innerHTML = svg;
+            document.getElementById(identifier2).textContent = svg;
+            i++;
+
+        });
         
         // Show in screen
-        this.renderOutlineDiv.innerHTML = obtainSvg(text);
-        this.outlineTextarea.value = obtainSvg(text); 
+        /* this.renderOutlineDiv.innerHTML = obtainSvg(text);
+        this.outlineTextarea.value = obtainSvg(text);  */
 
     }
 
