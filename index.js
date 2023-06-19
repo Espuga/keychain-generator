@@ -96,39 +96,45 @@ var App = /** @class */ (function () {
         xhr.send();
     };
     App.prototype.callMakerjs = function (font, text, size, holePositionY, holePositionX, outlineMargin) {
-        // Text model
-        var varTextModel = new makerjs.models.Text(font, text, size, true);
-        function example(origin) {
-            // All the models
-            this.models = {
-                textModel: varTextModel,
-                /* outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin, 0, false), */
-                outlineTextModel: makerjs.model.expandPaths(varTextModel, outlineMargin),
-                outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
-                ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX + 3.4, holePositionY + 4])
-            };
-            this.origin = origin;
+        function obtainSvg(text) {
+            var svg = "";
+            text.forEach(function (textName) {
+                // Text model
+                var varTextModel = new makerjs.models.Text(font, textName, size, true);
+                function example(origin) {
+                    // All the models
+                    this.models = {
+                        textModel: varTextModel,
+                        /* outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin, 0, false), */
+                        outlineTextModel: makerjs.model.expandPaths(varTextModel, outlineMargin),
+                        outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
+                        ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX + 3.4, holePositionY + 4])
+                    };
+                    this.origin = origin;
+                }
+                var examples = {
+                    models: {
+                        x1: new example([0, 0])
+                    }
+                };
+                var x = examples.models;
+                // Combine the ringModel with the outlineTextModel to make only 1 outline
+                makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
+                // Red outline
+                x.x1.models.outlineRingModel.layer = "red";
+                x.x1.models.ringModel.layer = "red";
+                x.x1.models.outlineTextModel.layer = "red";
+                // Export to svg
+                svg += makerjs.exporter.toSVG(examples, {
+                    fill: 'none',
+                    units: 'mm'
+                });
+            });
+            return svg;
         }
-        var examples = {
-            models: {
-                x1: new example([0, 0])
-            }
-        };
-        var x = examples.models;
-        // Combine the ringModel with the outlineTextModel to make only 1 outline
-        makerjs.model.combine(x.x1.models.outlineTextModel, x.x1.models.outlineRingModel, false, true, false, true);
-        // Red outline
-        x.x1.models.outlineRingModel.layer = "red";
-        x.x1.models.ringModel.layer = "red";
-        x.x1.models.outlineTextModel.layer = "red";
-        // Export to svg
-        var svg = makerjs.exporter.toSVG(examples, {
-            fill: 'none',
-            units: 'mm'
-        });
         // Show in screen
-        this.renderOutlineDiv.innerHTML = svg;
-        this.outlineTextarea.value = svg;
+        this.renderOutlineDiv.innerHTML = obtainSvg(text);
+        this.outlineTextarea.value = obtainSvg(text);
     };
     App.prototype.render = function (text, size, holePositionY, holePositionX, outlineMargin, fontName) {
         var _this = this;
@@ -141,9 +147,7 @@ var App = /** @class */ (function () {
         if (text) {
             var textArray = text.split(" ");
             opentype.load(url, function (err, font) {
-                textArray.forEach(function (textName) {
-                    _this.callMakerjs(font, textName, size, holePositionY, holePositionX, outlineMargin);
-                });
+                _this.callMakerjs(font, textArray, size, holePositionY, holePositionX, outlineMargin);
             });
         }
     };
