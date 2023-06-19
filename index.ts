@@ -143,7 +143,9 @@ class App {
         xhr.open('get', 'https://www.googleapis.com/webfonts/v1/webfonts?key=' + apiKey, true);
         xhr.onloadend = () => {
             this.fontList = JSON.parse(xhr.responseText);
-            this.fontList.items.forEach(font => this.addOption(this.selectFamily, font.family));
+            this.fontList.items.forEach(font => {
+                this.addOption(this.selectFamily, font.family);
+            });
 
             this.handleEvents();
             this.readQueryParams();
@@ -163,7 +165,8 @@ class App {
             // All the models
             this.models = {
                 textModel: varTextModel,
-                outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin),
+                /* outlineTextModel: makerjs.model.outline(varTextModel, outlineMargin, 0, false), */
+                outlineTextModel: makerjs.model.expandPaths(varTextModel, outlineMargin),
                 outlineRingModel: makerjs.model.move(new makerjs.models.Oval(12, 12), [holePositionX, holePositionY]),
                 ringModel: makerjs.model.move(new makerjs.models.Oval(5, 5), [holePositionX+3.4, holePositionY+4])
             };
