@@ -1,11 +1,11 @@
 ///<reference path="node_modules/makerjs/index.d.ts" />
 
+
 var makerjs = require('makerjs') as typeof MakerJs;
 
 class App {
 
     public fontList: google.fonts.WebfontList;
-    private selectFamily: HTMLSelectElement;
     private textInput: HTMLInputElement; 
     private sizeInput: HTMLInputElement;
     private renderDiv: HTMLDivElement;
@@ -16,6 +16,8 @@ class App {
     private holePositionY: HTMLInputElement;
     private holePositionX: HTMLInputElement;
     private outlineMargin: HTMLInputElement;
+    private indexFonts: Record<string, number> = {};
+    private fontSelector: HTMLInputElement;
 
     private renderCurrent = () => {
         var size = this.sizeInput.valueAsNumber;
@@ -34,42 +36,24 @@ class App {
         if (!outlineMargin) outlineMargin = parseFloat(this.outlineMargin.value);
         if (!outlineMargin) outlineMargin = 50;
 
+        var fontName = this.fontSelector.value;
+
         this.render(
-            this.selectFamily.selectedIndex,
             this.textInput.value,
             size,
             holePositionY,
             holePositionX,
             outlineMargin,
+            fontName
+
         );
     };
-
-    private updateUrl = () => {
-        var urlSearchParams = new URLSearchParams(window.location.search);
-
-        urlSearchParams.set('font-select', this.selectFamily.value);
-        urlSearchParams.set('input-text', this.textInput.value);
-        urlSearchParams.set('input-size', this.sizeInput.value);
-        urlSearchParams.set('holePositionY', this.holePositionY.value);
-        urlSearchParams.set('holePositionX', this.holePositionX.value);
-        urlSearchParams.set('outlineMargin', this.outlineMargin.value);
-        
-        const url = window.location.protocol 
-                    + "//" + window.location.host 
-                    + window.location.pathname 
-                    + "?" 
-                    + urlSearchParams.toString();
-
-        window.history.replaceState({path: url}, "", url)
-
-    }
 
     constructor() {
 
     }
 
     init() {
-        this.selectFamily = this.$('#font-select') as HTMLSelectElement;
         this.textInput = this.$('#input-text') as HTMLInputElement;
         this.sizeInput = this.$('#input-size') as HTMLInputElement;
         this.renderDiv = this.$('#svg-render') as HTMLDivElement;
@@ -80,20 +64,23 @@ class App {
         this.holePositionY = this.$('#holePositionY') as HTMLInputElement;
         this.holePositionX = this.$('#holePositionX') as HTMLInputElement;
         this.outlineMargin = this.$('#outlineMargin') as HTMLInputElement;
+        this.fontSelector = this.$('#fontSelector') as HTMLInputElement;
+        this.indexFonts["ABeeZee"] = 0;
+        this.indexFonts["Acme"] = 7;
+        this.indexFonts["Bree Serif"] = 205;
+        this.indexFonts["Oswald"] = 1093;
+        this.indexFonts["Old Standard TT"] = 1079;
     }
 
     readQueryParams() {
         var urlSearchParams = new URLSearchParams(window.location.search);
 
-        var selectFamily = urlSearchParams.get('font-select');
         var textInput = urlSearchParams.get('input-text');
         var sizeInput = urlSearchParams.get('input-size');
         var holePositionY = urlSearchParams.get('holePositionY');
         var holePositionX = urlSearchParams.get('holePositionX');
         var outlineMargin = urlSearchParams.get('outlineMargin');
-
-        if (selectFamily !== "" && selectFamily !== null)
-            this.selectFamily.value = selectFamily;
+        var fontSelector = urlSearchParams.get('fontSelector');
      
         if (textInput !== "" && textInput !== null)
             this.textInput.value = textInput;
@@ -110,16 +97,19 @@ class App {
         if (outlineMargin !== "" && outlineMargin !== null)
             this.outlineMargin.value = outlineMargin;
 
+        if (fontSelector !== "" && fontSelector !== null)
+            this.fontSelector.value = fontSelector;
+
     }
 
     handleEvents() {
-        this.selectFamily.onchange = this.renderCurrent;
         this.textInput.onchange =
             this.textInput.onkeyup =
             this.sizeInput.onchange =
             this.holePositionY.onchange = 
             this.holePositionX.onchange = 
             this.outlineMargin.onchange = 
+            this.fontSelector.onchange = 
             this.renderCurrent
             ;
 
@@ -131,21 +121,11 @@ class App {
         return document.querySelector(selector);
     }
 
-    addOption(select: HTMLSelectElement, optionText: string) {
-        var option = document.createElement('option');
-        option.text = optionText;
-        option.value = optionText;
-        select.options.add(option);
-    }
-
     getGoogleFonts(apiKey: string) {
         var xhr = new XMLHttpRequest();
         xhr.open('get', 'https://www.googleapis.com/webfonts/v1/webfonts?key=' + apiKey, true);
         xhr.onloadend = () => {
             this.fontList = JSON.parse(xhr.responseText);
-            this.fontList.items.forEach(font => {
-                this.addOption(this.selectFamily, font.family);
-            });
 
             this.handleEvents();
             this.readQueryParams();
@@ -201,27 +181,32 @@ class App {
     }
 
     render(
-        fontIndex: number,
         text: string,
         size: number,
         holePositionY: number,
         holePositionX: number,
         outlineMargin: number,
+        fontName: string
         
     ) {
-        
-        var f = this.fontList.items[fontIndex];
+        var f = this.fontList.items[this.indexFonts[fontName]];
         var url = f.files['regular'].substring(5); //remove http:
         document.getElementById('input-size-label').innerHTML = size.toString();
         document.getElementById('holePositionYLabel').innerHTML = holePositionY.toString();
         document.getElementById('holePositionXLabel').innerHTML = holePositionX.toString();
         document.getElementById('outlineMarginLabel').innerHTML = outlineMargin.toString();
+
+        if(text){
+            var textArray = text.split(" ");
+
+            opentype.load(url, (err, font) => {
+                textArray.forEach((textName) => {
+                    this.callMakerjs(font, textName, size, holePositionY, holePositionX, outlineMargin);
+                });
+            });
+        }   
        
-        opentype.load(url, (err, font) => {
-            if(text != ""){
-                this.callMakerjs(font, text, size, holePositionY, holePositionX, outlineMargin);
-            }
-        });
+        
     }
 }
 

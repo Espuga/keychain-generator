@@ -10,6 +10,14 @@
 
     <link rel="stylesheet" type="text/css" href="index.css" />
 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=ABeeZee">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Acme">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Bree Serif">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Kalam">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Old Standard TT">
+
+
     <script src="https://maker.js.org/target/js/browser.maker.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/bezier-js@2/bezier.js"></script>
     <script src="opentype.js" type="text/javascript"></script>
@@ -38,8 +46,20 @@
                 </div>
             </div>
             <div class="column">
-                <div class="input-holder">
+                <!-- <div class="input-holder">
                     <label>Google font: <select id="font-select" class="input"></select></label>
+                </div> -->
+                <div class="input-holder">
+                    <label>Google font: 
+                        <select id="fontSelector" class="input">
+                            <option value="ABeeZee" style="font-family: 'ABeeZee', sans-serif;">ABeeZee</option>
+                            <option value="Acme" style="font-family: 'Acme', sans-serif;">Acme</option>
+                            <option value="Bree Serif" style="font-family: 'Bree Serif', sans-serif;">Bree Serif</option>
+                            <option value="Oswald" style="font-family: 'Oswald', sans-serif;">Oswald</option>
+                            <option value="Old Standard TT" style="font-family: 'Old Standard TT', sans-serif;">Old Standard TT</option>
+
+                        </select>
+                    </label>
                 </div>
 
                 <div class="input-holder">

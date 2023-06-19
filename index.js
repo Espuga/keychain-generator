@@ -3,6 +3,7 @@ var makerjs = require('makerjs');
 var App = /** @class */ (function () {
     function App() {
         var _this = this;
+        this.indexFonts = {};
         this.renderCurrent = function () {
             var size = _this.sizeInput.valueAsNumber;
             if (!size)
@@ -24,26 +25,11 @@ var App = /** @class */ (function () {
                 outlineMargin = parseFloat(_this.outlineMargin.value);
             if (!outlineMargin)
                 outlineMargin = 50;
-            _this.render(_this.selectFamily.selectedIndex, _this.textInput.value, size, holePositionY, holePositionX, outlineMargin);
-        };
-        this.updateUrl = function () {
-            var urlSearchParams = new URLSearchParams(window.location.search);
-            urlSearchParams.set('font-select', _this.selectFamily.value);
-            urlSearchParams.set('input-text', _this.textInput.value);
-            urlSearchParams.set('input-size', _this.sizeInput.value);
-            urlSearchParams.set('holePositionY', _this.holePositionY.value);
-            urlSearchParams.set('holePositionX', _this.holePositionX.value);
-            urlSearchParams.set('outlineMargin', _this.outlineMargin.value);
-            var url = window.location.protocol
-                + "//" + window.location.host
-                + window.location.pathname
-                + "?"
-                + urlSearchParams.toString();
-            window.history.replaceState({ path: url }, "", url);
+            var fontName = _this.fontSelector.value;
+            _this.render(_this.textInput.value, size, holePositionY, holePositionX, outlineMargin, fontName);
         };
     }
     App.prototype.init = function () {
-        this.selectFamily = this.$('#font-select');
         this.textInput = this.$('#input-text');
         this.sizeInput = this.$('#input-size');
         this.renderDiv = this.$('#svg-render');
@@ -54,17 +40,21 @@ var App = /** @class */ (function () {
         this.holePositionY = this.$('#holePositionY');
         this.holePositionX = this.$('#holePositionX');
         this.outlineMargin = this.$('#outlineMargin');
+        this.fontSelector = this.$('#fontSelector');
+        this.indexFonts["ABeeZee"] = 0;
+        this.indexFonts["Acme"] = 7;
+        this.indexFonts["Bree Serif"] = 205;
+        this.indexFonts["Oswald"] = 1093;
+        this.indexFonts["Old Standard TT"] = 1079;
     };
     App.prototype.readQueryParams = function () {
         var urlSearchParams = new URLSearchParams(window.location.search);
-        var selectFamily = urlSearchParams.get('font-select');
         var textInput = urlSearchParams.get('input-text');
         var sizeInput = urlSearchParams.get('input-size');
         var holePositionY = urlSearchParams.get('holePositionY');
         var holePositionX = urlSearchParams.get('holePositionX');
         var outlineMargin = urlSearchParams.get('outlineMargin');
-        if (selectFamily !== "" && selectFamily !== null)
-            this.selectFamily.value = selectFamily;
+        var fontSelector = urlSearchParams.get('fontSelector');
         if (textInput !== "" && textInput !== null)
             this.textInput.value = textInput;
         if (sizeInput !== "" && sizeInput !== null)
@@ -75,27 +65,23 @@ var App = /** @class */ (function () {
             this.holePositionX.value = holePositionX;
         if (outlineMargin !== "" && outlineMargin !== null)
             this.outlineMargin.value = outlineMargin;
+        if (fontSelector !== "" && fontSelector !== null)
+            this.fontSelector.value = fontSelector;
     };
     App.prototype.handleEvents = function () {
-        this.selectFamily.onchange = this.renderCurrent;
         this.textInput.onchange =
             this.textInput.onkeyup =
                 this.sizeInput.onchange =
                     this.holePositionY.onchange =
                         this.holePositionX.onchange =
                             this.outlineMargin.onchange =
-                                this.renderCurrent;
+                                this.fontSelector.onchange =
+                                    this.renderCurrent;
         // Is triggered on the document whenever a new color is picked
         document.addEventListener("coloris:pick", debounce(this.renderCurrent));
     };
     App.prototype.$ = function (selector) {
         return document.querySelector(selector);
-    };
-    App.prototype.addOption = function (select, optionText) {
-        var option = document.createElement('option');
-        option.text = optionText;
-        option.value = optionText;
-        select.options.add(option);
     };
     App.prototype.getGoogleFonts = function (apiKey) {
         var _this = this;
@@ -103,9 +89,6 @@ var App = /** @class */ (function () {
         xhr.open('get', 'https://www.googleapis.com/webfonts/v1/webfonts?key=' + apiKey, true);
         xhr.onloadend = function () {
             _this.fontList = JSON.parse(xhr.responseText);
-            _this.fontList.items.forEach(function (font) {
-                _this.addOption(_this.selectFamily, font.family);
-            });
             _this.handleEvents();
             _this.readQueryParams();
             _this.renderCurrent();
@@ -147,19 +130,22 @@ var App = /** @class */ (function () {
         this.renderOutlineDiv.innerHTML = svg;
         this.outlineTextarea.value = svg;
     };
-    App.prototype.render = function (fontIndex, text, size, holePositionY, holePositionX, outlineMargin) {
+    App.prototype.render = function (text, size, holePositionY, holePositionX, outlineMargin, fontName) {
         var _this = this;
-        var f = this.fontList.items[fontIndex];
+        var f = this.fontList.items[this.indexFonts[fontName]];
         var url = f.files['regular'].substring(5); //remove http:
         document.getElementById('input-size-label').innerHTML = size.toString();
         document.getElementById('holePositionYLabel').innerHTML = holePositionY.toString();
         document.getElementById('holePositionXLabel').innerHTML = holePositionX.toString();
         document.getElementById('outlineMarginLabel').innerHTML = outlineMargin.toString();
-        opentype.load(url, function (err, font) {
-            if (text != "") {
-                _this.callMakerjs(font, text, size, holePositionY, holePositionX, outlineMargin);
-            }
-        });
+        if (text) {
+            var textArray = text.split(" ");
+            opentype.load(url, function (err, font) {
+                textArray.forEach(function (textName) {
+                    _this.callMakerjs(font, textName, size, holePositionY, holePositionX, outlineMargin);
+                });
+            });
+        }
     };
     return App;
 }());
