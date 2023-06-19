@@ -193,7 +193,7 @@ class App {
             // Red outline
             x.x1.models.outlineRingModel.layer = "red";
             x.x1.models.ringModel.layer = "red";
-            x.x1.models.outlineTextModel.layer = "red";
+            x.x1.models.outlineTextModel.layer = "red"; 
 
             // Export to svg
             var svg = makerjs.exporter.toSVG(examples, {
