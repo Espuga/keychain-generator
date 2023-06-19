@@ -29,6 +29,7 @@ var App = /** @class */ (function () {
             _this.render(_this.textInput.value, size, holePositionY, holePositionX, outlineMargin, fontName);
         };
     }
+    
     App.prototype.init = function () {
         this.textInput = this.$('#input-text');
         this.sizeInput = this.$('#input-size');

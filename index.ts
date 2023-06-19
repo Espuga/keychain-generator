@@ -200,6 +200,7 @@ class App {
                 fill: 'none',
                 units: 'mm' 
             });
+            
             leftColumn.appendChild(divElement);
             textareaContainer.appendChild(textAreaElement);
             document.getElementById(identifier).innerHTML = svg;
