@@ -138,34 +138,10 @@ class App {
          holePositionY: number, holePositionX: number,
          outlineMargin: number) {
 
-        const leftColumn = document.getElementById("svg-render-outline");
-        // Remove no content divs
-        const divs = leftColumn.querySelectorAll("div");
-        divs.forEach((div) => {
-            if(!div.innerHTML.includes("<svg")){
-                div.remove();
-            };
-        });
-        const divElement = document.createElement("div");
+        document.getElementById("svg-render-outline").innerHTML = "";
 
-        const textareaContainer = document.getElementById("textarea-container");
-        // Remove no content textarea
-        const textareas = textareaContainer.querySelectorAll("textarea");
-        textareas.forEach((textArea) => {
-            if(textArea.value.trim() === ""){
-                textArea.remove();
-            };
-        });
-        
-        const textAreaElement = document.createElement("textarea")
-        let i  = 1;
 
-        text.forEach((textName) => {
-            let identifier = "svg-render-outline"+i.toString()
-            let identifier2 = "textarea-container"+i.toString()
-            divElement.id = identifier;
-            textAreaElement.id = identifier2;
-            // Text model
+        function addName(textName:string, position:number[]) {
             var varTextModel = new makerjs.models.Text(font, textName, size, true);
 
             function example(origin: number[]) {
@@ -182,7 +158,7 @@ class App {
 
             var examples = {
                 models: {
-                    x1: new example([0, 0])
+                    x1: new example(position)
                 }
             };
 
@@ -196,22 +172,47 @@ class App {
             x.x1.models.outlineTextModel.layer = "red"; 
 
             // Export to svg
-            var svg = makerjs.exporter.toSVG(examples, {
+            /* var svg = makerjs.exporter.toSVG(examples, {
                 fill: 'none',
                 units: 'mm' 
             });
             
-            leftColumn.appendChild(divElement);
-            textareaContainer.appendChild(textAreaElement);
-            document.getElementById(identifier).innerHTML = svg;
-            document.getElementById(identifier2).textContent = svg;
-            i++;
+            document.getElementById("svg-render-outline").innerHTML += svg;
+            document.getElementById("outline-svg").textContent += svg; */
+            return examples.models.x1;
 
+        };
+
+        var toExport = {
+            models: {
+
+            }
+        };
+        var i = 1;
+        var position:number[] = [0, 0];
+        text.forEach((textName) => {
+            var propName = "x"+i.toString();
+            let prov = addName(textName, position);
+            toExport.models[propName] = prov;
+
+            const provModel1 = prov.models.outlineTextModel;
+            const modelSize1 = makerjs.measure.modelExtents(provModel1);
+            const provModel2 = prov.models.outlineRingModel;
+            const modelSize2 = makerjs.measure.modelExtents(provModel2);
+            const altura = modelSize1.height+modelSize2.height;
+
+            position = [0, position[1]-altura];
+            i++;
+        });
+
+        var svg = makerjs.exporter.toSVG(toExport, {
+            fill: 'none',
+            units: 'mm' 
         });
         
-        // Show in screen
-        /* this.renderOutlineDiv.innerHTML = obtainSvg(text);
-        this.outlineTextarea.value = obtainSvg(text);  */
+        document.getElementById("svg-render-outline").innerHTML = svg;
+        document.getElementById("outline-svg").textContent = svg;
+
 
     }
 

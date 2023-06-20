@@ -29,7 +29,6 @@ var App = /** @class */ (function () {
             _this.render(_this.textInput.value, size, holePositionY, holePositionX, outlineMargin, fontName);
         };
     }
-    
     App.prototype.init = function () {
         this.textInput = this.$('#input-text');
         this.sizeInput = this.$('#input-size');
@@ -97,33 +96,8 @@ var App = /** @class */ (function () {
         xhr.send();
     };
     App.prototype.callMakerjs = function (font, text, size, holePositionY, holePositionX, outlineMargin) {
-        var leftColumn = document.getElementById("svg-render-outline");
-        // Remove no content divs
-        var divs = leftColumn.querySelectorAll("div");
-        divs.forEach(function (div) {
-            if (!div.innerHTML.includes("<svg")) {
-                div.remove();
-            }
-            ;
-        });
-        var divElement = document.createElement("div");
-        var textareaContainer = document.getElementById("textarea-container");
-        // Remove no content textarea
-        var textareas = textareaContainer.querySelectorAll("textarea");
-        textareas.forEach(function (textArea) {
-            if (textArea.value.trim() === "") {
-                textArea.remove();
-            }
-            ;
-        });
-        var textAreaElement = document.createElement("textarea");
-        var i = 1;
-        text.forEach(function (textName) {
-            var identifier = "svg-render-outline" + i.toString();
-            var identifier2 = "textarea-container" + i.toString();
-            divElement.id = identifier;
-            textAreaElement.id = identifier2;
-            // Text model
+        document.getElementById("svg-render-outline").innerHTML = "";
+        function addName(textName, position) {
             var varTextModel = new makerjs.models.Text(font, textName, size, true);
             function example(origin) {
                 // All the models
@@ -138,7 +112,7 @@ var App = /** @class */ (function () {
             }
             var examples = {
                 models: {
-                    x1: new example([0, 0])
+                    x1: new example(position)
                 }
             };
             var x = examples.models;
@@ -149,19 +123,39 @@ var App = /** @class */ (function () {
             x.x1.models.ringModel.layer = "red";
             x.x1.models.outlineTextModel.layer = "red";
             // Export to svg
-            var svg = makerjs.exporter.toSVG(examples, {
+            /* var svg = makerjs.exporter.toSVG(examples, {
                 fill: 'none',
                 units: 'mm'
             });
-            leftColumn.appendChild(divElement);
-            textareaContainer.appendChild(textAreaElement);
-            document.getElementById(identifier).innerHTML = svg;
-            document.getElementById(identifier2).textContent = svg;
+            
+            document.getElementById("svg-render-outline").innerHTML += svg;
+            document.getElementById("outline-svg").textContent += svg; */
+            return examples.models.x1;
+        }
+        ;
+        var toExport = {
+            models: {}
+        };
+        var i = 1;
+        var position = [0, 0];
+        text.forEach(function (textName) {
+            var propName = "x" + i.toString();
+            var prov = addName(textName, position);
+            toExport.models[propName] = prov;
+            var provModel1 = prov.models.outlineTextModel;
+            var modelSize1 = makerjs.measure.modelExtents(provModel1);
+            var provModel2 = prov.models.outlineRingModel;
+            var modelSize2 = makerjs.measure.modelExtents(provModel2);
+            var altura = modelSize1.height + modelSize2.height;
+            position = [0, position[1] - altura];
             i++;
         });
-        // Show in screen
-        /* this.renderOutlineDiv.innerHTML = obtainSvg(text);
-        this.outlineTextarea.value = obtainSvg(text);  */
+        var svg = makerjs.exporter.toSVG(toExport, {
+            fill: 'none',
+            units: 'mm'
+        });
+        document.getElementById("svg-render-outline").innerHTML = svg;
+        document.getElementById("outline-svg").textContent = svg;
     };
     App.prototype.render = function (text, size, holePositionY, holePositionX, outlineMargin, fontName) {
         var _this = this;
